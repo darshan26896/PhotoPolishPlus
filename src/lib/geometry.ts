@@ -1,5 +1,13 @@
 import type { Layer, Point } from "../types";
 
+export function layerSX(layer: Layer) {
+  return (layer.scale || 1) * (layer.scaleX ?? 1);
+}
+
+export function layerSY(layer: Layer) {
+  return (layer.scale || 1) * (layer.scaleY ?? 1);
+}
+
 export function rotate(x: number, y: number, deg: number): Point {
   const r = (deg * Math.PI) / 180;
   const c = Math.cos(r);
@@ -18,23 +26,23 @@ export function docToScreen(dx: number, dy: number, pan: Point, zoom: number): P
 export function docToLayerLocal(dx: number, dy: number, layer: Layer): Point {
   const p = rotate(dx - layer.x, dy - layer.y, -layer.rotation);
   return {
-    x: p.x / layer.scale + layer.width / 2,
-    y: p.y / layer.scale + layer.height / 2,
+    x: p.x / (layerSX(layer) || 0.001) + layer.width / 2,
+    y: p.y / (layerSY(layer) || 0.001) + layer.height / 2,
   };
 }
 
 export function layerLocalToDoc(lx: number, ly: number, layer: Layer): Point {
   const p = rotate(
-    (lx - layer.width / 2) * layer.scale,
-    (ly - layer.height / 2) * layer.scale,
+    (lx - layer.width / 2) * layerSX(layer),
+    (ly - layer.height / 2) * layerSY(layer),
     layer.rotation,
   );
   return { x: p.x + layer.x, y: p.y + layer.y };
 }
 
 export function layerCorners(layer: Layer): Point[] {
-  const hw = (layer.width * layer.scale) / 2;
-  const hh = (layer.height * layer.scale) / 2;
+  const hw = (layer.width * layerSX(layer)) / 2;
+  const hh = (layer.height * layerSY(layer)) / 2;
   return [
     { x: -hw, y: -hh },
     { x: hw, y: -hh },

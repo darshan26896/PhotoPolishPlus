@@ -119,6 +119,8 @@ export interface Layer {
   x: number;
   y: number;
   scale: number;
+  scaleX: number;
+  scaleY: number;
   rotation: number;
   opacity: number;
   visible: boolean;

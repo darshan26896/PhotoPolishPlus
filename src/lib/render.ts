@@ -1,5 +1,6 @@
 import type { DocBackground, Layer, Size } from "../types";
 import { paintStyled } from "./adjust";
+import { layerSX, layerSY } from "./geometry";
 
 export function getSprite(layer: Layer, bypass = false): HTMLCanvasElement {
   if (!bypass && !layer.spriteDirty && layer.sprite) return layer.sprite;
@@ -37,7 +38,7 @@ export function composite(
     ctx.save();
     ctx.translate(layer.x, layer.y);
     ctx.rotate((layer.rotation * Math.PI) / 180);
-    ctx.scale(layer.scale, layer.scale);
+    ctx.scale(layerSX(layer), layerSY(layer));
     ctx.globalAlpha = Math.max(0, Math.min(1, layer.opacity / 100));
     ctx.globalCompositeOperation = layer.blendMode;
     ctx.drawImage(sprite, -layer.width / 2, -layer.height / 2);
@@ -56,8 +57,8 @@ export function drawSelection(
   ctx.save();
   ctx.translate(layer.x, layer.y);
   ctx.rotate((layer.rotation * Math.PI) / 180);
-  const w = layer.width * layer.scale;
-  const h = layer.height * layer.scale;
+  const w = layer.width * layerSX(layer);
+  const h = layer.height * layerSY(layer);
   const lw = Math.max(1, 1 / zoom);
   ctx.strokeStyle = "rgba(240, 217, 168, 0.95)";
   ctx.lineWidth = lw;
@@ -119,8 +120,8 @@ export function hitHandle(
     y: docPt.y - layer.y,
   };
   const r = rotateVec(local.x, local.y, -layer.rotation);
-  const w = layer.width * layer.scale;
-  const h = layer.height * layer.scale;
+  const w = layer.width * layerSX(layer);
+  const h = layer.height * layerSY(layer);
   const thresh = 10 / zoom;
   const handles: { id: HandleId; x: number; y: number }[] = [
     { id: "nw", x: -w / 2, y: -h / 2 },

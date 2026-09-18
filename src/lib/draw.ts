@@ -1,5 +1,6 @@
 import type { Layer } from "../types";
 import { ensureBitmap } from "./image";
+import { layerSX, layerSY } from "./geometry";
 
 export function strokeDraw(
   bitmap: HTMLCanvasElement,
@@ -180,8 +181,8 @@ export function applyGradientMask(
 export function clipLayerToRect(layer: Layer, cellW: number, cellH: number) {
   const ctx = layer.mask.getContext("2d");
   if (!ctx) return;
-  const mw = cellW / Math.max(0.001, layer.scale);
-  const mh = cellH / Math.max(0.001, layer.scale);
+  const mw = cellW / Math.max(0.001, Math.abs(layerSX(layer)));
+  const mh = cellH / Math.max(0.001, Math.abs(layerSY(layer)));
   const x = (layer.width - mw) / 2;
   const y = (layer.height - mh) / 2;
   ctx.globalCompositeOperation = "source-over";

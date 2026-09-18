@@ -381,7 +381,7 @@ function LayerTab() {
           </button>
         ))}
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-4 space-y-3">
         <Slider
           label="Scale"
           value={Math.round(Math.abs(selected.scale) * 100)}
@@ -389,6 +389,24 @@ function LayerTab() {
           max={300}
           suffix="%"
           onChange={(v) => updateLayer(selected.id, { scale: v / 100 })}
+          onBegin={commit}
+        />
+        <Slider
+          label="Stretch left–right"
+          value={Math.round((selected.scaleX ?? 1) * 100)}
+          min={10}
+          max={300}
+          suffix="%"
+          onChange={(v) => updateLayer(selected.id, { scaleX: v / 100 })}
+          onBegin={commit}
+        />
+        <Slider
+          label="Stretch up–down"
+          value={Math.round((selected.scaleY ?? 1) * 100)}
+          min={10}
+          max={300}
+          suffix="%"
+          onChange={(v) => updateLayer(selected.id, { scaleY: v / 100 })}
           onBegin={commit}
         />
         <Slider
@@ -400,6 +418,62 @@ function LayerTab() {
           onChange={(v) => updateLayer(selected.id, { rotation: v })}
           onBegin={commit}
         />
+      </div>
+      <div className="mt-3">
+        <div className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-stone-500">
+          Position in frame
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {(
+            [
+              ["fit", "Fit"],
+              ["stretch", "Stretch"],
+              ["cover", "Cover"],
+              ["width", "Fit width"],
+              ["height", "Fit height"],
+              ["original", "Original"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => {
+                commit();
+                const W = doc.w;
+                const H = doc.h;
+                const w = selected.width;
+                const h = selected.height;
+                if (id === "fit") {
+                  const s = Math.min(W / w, H / h);
+                  updateLayer(selected.id, { scale: s, scaleX: 1, scaleY: 1, x: W / 2, y: H / 2, rotation: 0 });
+                } else if (id === "stretch") {
+                  updateLayer(selected.id, {
+                    scale: 1,
+                    scaleX: W / w,
+                    scaleY: H / h,
+                    x: W / 2,
+                    y: H / 2,
+                    rotation: 0,
+                  });
+                } else if (id === "cover") {
+                  const s = Math.max(W / w, H / h);
+                  updateLayer(selected.id, { scale: s, scaleX: 1, scaleY: 1, x: W / 2, y: H / 2, rotation: 0 });
+                } else if (id === "width") {
+                  const s = W / w;
+                  updateLayer(selected.id, { scale: s, scaleX: 1, scaleY: 1, x: W / 2, y: H / 2, rotation: 0 });
+                } else if (id === "height") {
+                  const s = H / h;
+                  updateLayer(selected.id, { scale: s, scaleX: 1, scaleY: 1, x: W / 2, y: H / 2, rotation: 0 });
+                } else {
+                  updateLayer(selected.id, { scale: 1, scaleX: 1, scaleY: 1, x: W / 2, y: H / 2, rotation: 0 });
+                }
+              }}
+              className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-stone-400 hover:border-gold/30 hover:text-gold"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-1">
         <Ghost
@@ -428,7 +502,7 @@ function LayerTab() {
           onClick={() => {
             commit();
             const s = Math.min(doc.w / selected.width, doc.h / selected.height);
-            updateLayer(selected.id, { scale: s, x: doc.w / 2, y: doc.h / 2, rotation: 0 });
+            updateLayer(selected.id, { scale: s, scaleX: 1, scaleY: 1, x: doc.w / 2, y: doc.h / 2, rotation: 0 });
           }}
         >
           <Maximize2 className="h-3.5 w-3.5" />

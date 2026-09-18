@@ -24,7 +24,7 @@ interface Drag {
   startScreen: Point;
   startPan: Point;
   lastLocal: Point;
-  origin: { x: number; y: number; scale: number; rotation: number };
+  origin: { x: number; y: number; scale: number; scaleX?: number; scaleY?: number; rotation: number };
   startDoc: Point;
   handle?: HandleId;
   layerId?: string;
@@ -162,6 +162,8 @@ export function CanvasStage() {
               x: selected.x,
               y: selected.y,
               scale: selected.scale,
+              scaleX: selected.scaleX ?? 1,
+              scaleY: selected.scaleY ?? 1,
               rotation: selected.rotation,
             },
             startDoc: docPt,
@@ -180,7 +182,7 @@ export function CanvasStage() {
           startScreen: { x: sx, y: sy },
           startPan: { ...pan },
           lastLocal: docPt,
-          origin: { x: hit.x, y: hit.y, scale: hit.scale, rotation: hit.rotation },
+          origin: { x: hit.x, y: hit.y, scale: hit.scale, scaleX: hit.scaleX ?? 1, scaleY: hit.scaleY ?? 1, rotation: hit.rotation },
           startDoc: docPt,
           layerId: hit.id,
         };
@@ -379,10 +381,23 @@ export function CanvasStage() {
     }
 
     if (d.kind === "scale") {
-      const a = Math.hypot(d.startDoc.x - d.origin.x, d.startDoc.y - d.origin.y) || 1;
-      const b = Math.hypot(docPt.x - d.origin.x, docPt.y - d.origin.y);
-      const sign = layer.scale < 0 ? -1 : 1;
-      layer.scale = sign * Math.max(0.03, Math.min(8, Math.abs(d.origin.scale) * (b / a)));
+      const handle = d.handle;
+      const ox = d.origin.scaleX ?? 1;
+      const oy = d.origin.scaleY ?? 1;
+      if (handle === "e" || handle === "w") {
+        const startDx = d.startDoc.x - d.origin.x || 1;
+        const factor = (docPt.x - d.origin.x) / startDx;
+        layer.scaleX = Math.max(0.03, Math.min(8, Math.abs(ox * factor)));
+      } else if (handle === "n" || handle === "s") {
+        const startDy = d.startDoc.y - d.origin.y || 1;
+        const factor = (docPt.y - d.origin.y) / startDy;
+        layer.scaleY = Math.max(0.03, Math.min(8, Math.abs(oy * factor)));
+      } else {
+        const a = Math.hypot(d.startDoc.x - d.origin.x, d.startDoc.y - d.origin.y) || 1;
+        const b = Math.hypot(docPt.x - d.origin.x, docPt.y - d.origin.y);
+        const sign = layer.scale < 0 ? -1 : 1;
+        layer.scale = sign * Math.max(0.03, Math.min(8, Math.abs(d.origin.scale) * (b / a)));
+      }
       bump();
       return;
     }
@@ -478,6 +493,8 @@ export function CanvasStage() {
           x: layer.x,
           y: layer.y,
           scale: layer.scale,
+          scaleX: layer.scaleX,
+          scaleY: layer.scaleY,
           rotation: layer.rotation,
         });
       }
